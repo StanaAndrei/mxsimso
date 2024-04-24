@@ -51,7 +51,7 @@ index 4708fd3..0fc6626 100644
      def pred(self):
          return self._pred
 diff --git a/simso/core/Task.py b/simso/core/Task.py
-index da5ad2d..beca41d 100644
+index da5ad2d..ee64356 100644
 --- a/simso/core/Task.py
 +++ b/simso/core/Task.py
 @@ -17,10 +17,11 @@ class TaskInfo(object):
@@ -188,7 +188,7 @@ index da5ad2d..beca41d 100644
 +    """
 +        Mixed criticality abstract class. Inherits from :class:`GenericTask`.
 +    """
-+    fields = ['deadline', 'wcet', 'nr_crit_levels', 'crit_level', 'list_wcets', 'wcet_deviations']
++    fields = ['deadline', 'nr_crit_levels', 'crit_level', 'list_wcets', 'wcet_deviations']
 +
 +
 +class MCATask(MixedCriticalityTask):
@@ -307,29 +307,66 @@ index afaa37f..d318eeb 100644
      def update(self):
          for job in list(self.on_execute_date.keys()):
 diff --git a/simso/generator/task_generator.py b/simso/generator/task_generator.py
-index 1fad270..5d76d86 100755
+index 1fad270..1c7db3f 100755
 --- a/simso/generator/task_generator.py
 +++ b/simso/generator/task_generator.py
-@@ -236,6 +236,16 @@ def gen_arrivals(period, min_, max_, round_to_int=False):
+@@ -1,6 +1,7 @@
+ """
+ Tools for generating task sets.
+ """
++from collections import OrderedDict
+ 
+ import numpy as np
+ import random
+@@ -236,6 +237,29 @@ def gen_arrivals(period, min_, max_, round_to_int=False):
      return dates
  
  
-+def gen_list_wcets(general_wcet, nr_crit_levels, round_to_int=False):
-+    wcets = []
++def gen_list_wcets(general_wcet, nr_crit_levels, crit_level, round_to_int=False):
++    wcets = {}
++    wcets[crit_level] = general_wcet
 +    for i in range(nr_crit_levels):
-+        wcet = general_wcet + 0.01 * general_wcet * i
++        wcet = general_wcet - 0.1 * general_wcet * (crit_level - i)
 +        if round_to_int:
 +            wcet = int(round(wcet))
-+        wcets.append(wcet)
-+    return wcets
++        wcets[i] = wcet
++
++    return list(OrderedDict(sorted(wcets.items())).values())
++
++
++def gen_wcet_deviations(list_wcets, nr_crit_levels, round_to_int=False):
++    wcet_deviations = []
++    for i in range(nr_crit_levels):
++        d = 0.5 * list_wcets[i]
++        if round_to_int:
++            d = int(round(d))
++        wcet_deviations.append(d)
++    wcet_deviations[-1] = 0
++    return wcet_deviations
 +
 +
  def gen_periods_loguniform(n, nsets, min_, max_, round_to_int=False):
      """
      Generate a list of `nsets` sets containing each `n` random periods using a
+@@ -292,7 +316,7 @@ def gen_periods_discrete(n, nsets, periods):
+         return p[np.random.randint(len(p), size=(nsets, n))].tolist()
+ 
+ 
+-def gen_tasksets(utilizations, periods):
++def gen_tasksets(utilizations, periods, crit_level=None):
+     """
+     Take a list of task utilization sets and a list of task period sets and
+     return a list of couples (c, p) sets. The computation times are truncated
+@@ -315,5 +339,5 @@ def gen_tasksets(utilizations, periods):
+     def trunc(x, p):
+         return int(x * 10 ** p) / float(10 ** p)
+ 
+-    return [[(trunc(ui * pi, 6), trunc(pi, 6)) for ui, pi in zip(us, ps)]
++    return [[(trunc(ui * pi, 6), trunc(pi, 6), crit_level) for ui, pi in zip(us, ps)]
+             for us, ps in zip(utilizations, periods)]
 diff --git a/simso/schedulers/EDF_VD_mono.py b/simso/schedulers/EDF_VD_mono.py
 new file mode 100644
-index 0000000..9ff7e7d
+index 0000000..b40254e
 --- /dev/null
 +++ b/simso/schedulers/EDF_VD_mono.py
 @@ -0,0 +1,88 @@
@@ -386,9 +423,9 @@ index 0000000..9ff7e7d
 +            self.ready_list.append(job)
 +            choices = [0, 1]
 +            weights = [0.8, 0.2]
-+            wcets = job.task.list_wcets
-+            deviations = job.task.wcet_deviations
 +            if job.task.crit_level == self.mode:
++                wcets = job.task.list_wcets
++                deviations = job.task.wcet_deviations
 +                if np.random.choice(choices, 1, p=weights) == 0:
 +                    et = random.uniform(wcets[self.mode] - deviations[self.mode], wcets[self.mode])
 +                else:
@@ -403,7 +440,7 @@ index 0000000..9ff7e7d
 +        if job in self.ready_list:
 +            self.ready_list.remove(job)
 +        task = job.task
-+        if self.mode < task.nr_crit_levels and job.computation_time > task.list_wcets[self.mode]:
++        if self.mode == task.crit_level and job.computation_time > task.list_wcets[self.mode]:
 +            self.mode += 1
 +            for t in self.task_list:
 +                if t.crit_level < self.mode:
@@ -423,10 +460,10 @@ index 0000000..9ff7e7d
 +        return (job, cpu)
 diff --git a/simso/schedulers/P_EDF_VD_FF.py b/simso/schedulers/P_EDF_VD_FF.py
 new file mode 100644
-index 0000000..cf1d235
+index 0000000..851f57b
 --- /dev/null
 +++ b/simso/schedulers/P_EDF_VD_FF.py
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,32 @@
 +"""
 +Partitionned EDF-VD using PartitionedScheduler.
 +"""
@@ -435,12 +472,9 @@ index 0000000..cf1d235
 +from simso.utils.PartitionedScheduler import decreasing_first_fit
 +from simso.schedulers import scheduler
 +
-+@scheduler("simso.schedulers.P_EDF")
++@scheduler("simso.schedulers.P_EDF_VD_FF")
 +class P_EDF_VD_FF(PartitionedScheduler):
 +    def init(self):
-+        # t.wcet = t.list_wcets[t.crit_level]
-+        #
-+        #
 +        PartitionedScheduler.init(
 +            self, SchedulerInfo("simso.schedulers.EDF_VD_mono"))
 +
