@@ -1,0 +1,6 @@
+[submodule "simso-forked"]
+	path = simso-forked
+	url = https://github.com/andreib99/simso
+[submodule "simso-gui-forked"]
+	path = simso-gui-forked
+	url = https://github.com/andreib99/simso-gui
