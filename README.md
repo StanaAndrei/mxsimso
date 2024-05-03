@@ -1,5 +1,20 @@
 # SimSo Mixed-Criticality extension
-ToDo: Add general info for mixed-criticality tasks
+This repository represents an extension of one of the most widely used real-time scheduling simulator called
+SimSo. This extension allows users to generate and schedule mixed criticality real-time tasks, while also
+providing support for developing and running customized mixed criticality task scheduling algorithms.
+
+SimSo's base links:
+- Backend repository: https://github.com/MaximeCheramy/simso
+- GUI repository: https://github.com/MaximeCheramy/simso-gui
+
+# Content
+In this repository you will find three possible ways to use the mixed-criticality extension.<br/>
+The logic of the original SimSo simulator is divided into two repository. One is responsible for the GUI (frontend)
+and the other one, for the actual logic (backend).<br/> The current repository is also following the above approach, so this is 
+why we have two folders for each way of using the extension. Possible approaches:
+- Forked:
+- Applying patches:
+- Already patched:
 
 # Setup for local development
 After making any change to the code, run `python setup.py install` command in order to apply them.
