@@ -1,8 +1,6 @@
-ToDo: Add necessary details
+Copyright UPT (2024)
 
-Copyright SOMETHING
-
-andrei.briac@student.upt.ro
+andrei.briac@student.upt.ro, cristina.stangaciu@cs.upt.ro
 
 This software is a computer program whose purpose is to provide an
 extension of the SimSo simulator for Multiprocessor Real-Time 
