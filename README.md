@@ -18,7 +18,7 @@ why we have two folders for each way of using the extension. Possible approaches
 
 # Setup for local development
 For the forked approach, please follow these steps:
-1. Go in the submodules links (simso-forked and simso-gui-forked), which will redirect you to the forked repositories.
+1. Click on the submodules links (simso-forked and simso-gui-forked), which will redirect you to the forked repositories.
 2. Make a clone for each repository locally.
 
 If you want to manually apply the changes made to the original SimSo, follow these steps:
@@ -28,7 +28,7 @@ If you want to manually apply the changes made to the original SimSo, follow the
 Steps to follow in case you want to use this extension with the changes already applied:
 1. Download both projects patched directories (mxsimso-patched and mxsimso-gui-patched)
 
-### Instalation
+## Instalation
 After having both projects locally, follow these steps in order to be able to use this extension:
 1. Create a virtual environment for simso-gui repository using the following command: `python -m venv /path/to/new/virtual/environment`
 2. Activate the virtual environment: `source /path/to/new/virtual/environment/bin/activate`
