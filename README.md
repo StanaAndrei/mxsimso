@@ -20,13 +20,12 @@ why we have two folders for each way of using the extension. Possible approaches
 For the forked approach, please follow these steps:
 1. Click on the submodules links (simso-forked and simso-gui-forked), which will redirect you to the forked repositories.
 2. Make a clone for each repository locally.
-
+   
 If you want to manually apply the changes made to the original SimSo, follow these steps:
 1. Clone the original SimSo's repositories, using the links from the top of the file.
 2. Download both patches (from the patch directory) and apply them to their specific project by using the `git apply <.patch file>` command.
 
-Steps to follow in case you want to use this extension with the changes already applied:
-1. Download both projects patched directories (mxsimso-patched and mxsimso-gui-patched)
+If you want to use the extension with the changes already applied, download the projects patched directories (mxsimso-patched and mxsimso-gui-patched).
 
 ## Instalation
 After having both projects locally, follow these steps in order to be able to use this extension:
@@ -40,6 +39,7 @@ After having both projects locally, follow these steps in order to be able to us
 Notes: 
 - After making any changes to the code, in any project, run `python setup.py install` command in order to apply them.
 - Because both projects are installed in the same virtual environment, any changes made on one of them, will be automatically visible in the other one as well.
+- If you get an error like: `Cannot import QtWebKitWidgets in PyQt5` please install also PyQtWebEngine in the virtual environment, by using `pip install PyQtWebEngine` command.
 
 # Usage
 For making a mixed-criticality task scheduling simulation, using GUI (graphical user interface), please follow the next steps:
